@@ -1,8 +1,12 @@
-﻿using AngleSharp.Dom;
+﻿using System.Net.Http.Headers;
+using System.Security.Cryptography.X509Certificates;
+using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using WikiHotWheelsWebScraper.Models;
 using WikiHotWheelsWebScraper.Services;
 
 ScrapeHotWheelsWiki hwScraper = new ScrapeHotWheelsWiki();
+await hwScraper.InitializeAsync();
 List<int> allYears = hwScraper.GetAllAvailableYears();
 
 //for (int i = allYears.First(); i <= allYears.Last(); i++)
@@ -10,53 +14,13 @@ List<int> allYears = hwScraper.GetAllAvailableYears();
 //    IHtmlDocument yearDoc = await hwScraper.ScrapeYearCollection(i);
 //}
 
-IHtmlDocument yearDoc = await hwScraper.ScrapeYearCollection(1978);
-
-var carTables = yearDoc.QuerySelectorAll("table");
-int carNameColumnIndex = -1;
-
-foreach (var table in carTables.Take(carTables.Length - 1))
+await hwScraper.InitializeAsync();
+List<int> availableYears = hwScraper.GetAllAvailableYears();
+for (int year = 1980; year <= availableYears.Last(); year++)
 {
-    var colNames = table.QuerySelectorAll("tr th");
-    if (colNames.Length == 0)
+    List<HotWheelsModel> hotWheelsModels = await hwScraper.DefaultDataBasePopulation(year);
+    foreach (HotWheelsModel car in hotWheelsModels)
     {
-        colNames = table.QuerySelectorAll("tr td");
-    }
-    for (int i = 0; i < colNames.Length; i++)
-    {
-        switch (colNames[i].TextContent.Trim().ToLower())
-        {
-            case "casting":
-            case "car name":
-            case "name":
-            case "casting name":
-            case "model name":
-                carNameColumnIndex = i;
-                break;
-        }
-    }
-
-    var rows = table.QuerySelectorAll("tbody tr");
-    foreach (var row in rows.Skip(1))
-    {
-        var columns = row.Children;
-        Console.WriteLine(columns[carNameColumnIndex].TextContent.Trim());
+        Console.WriteLine(car.PhotoURL);
     }
 }
-
-
-
-//IHtmlDocument customYearDoc = await hwScraper.ScrapeYearCollection(2024);
-
-//var tableWithCars = customYearDoc.QuerySelector("table");
-//var body = tableWithCars.QuerySelector("tbody");
-//var rows = body.QuerySelectorAll("tr");
-//foreach (var row in rows)
-//{
-//    Console.WriteLine(row.TextContent);
-//}
-
-
-
-
-
