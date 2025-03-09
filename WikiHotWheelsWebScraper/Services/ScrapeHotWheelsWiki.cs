@@ -7,18 +7,12 @@ namespace WikiHotWheelsWebScraper.Services
 {
     public class ScrapeHotWheelsWiki : IScrapeHotWheelsWiki
     {
-        private IHtmlDocument? _mainPage;
         private readonly HttpClient _httpClient = new HttpClient();
-
-        public async Task InitializeAsync()
-        {
-            _mainPage = await ScrapeMainPage();
-        }
 
         private async Task<IHtmlDocument> ScrapeMainPage()
         {
 
-            HttpResponseMessage request = await _httpClient.GetAsync("https://hotwheels.fandom.com/wiki/Hot_Wheels").ConfigureAwait(continueOnCapturedContext:false);
+            HttpResponseMessage request = await _httpClient.GetAsync("https://hotwheels.fandom.com/wiki/Hot_Wheels");
 
             // Check if the response is successful
             Stream response = await request.Content.ReadAsStreamAsync();
@@ -27,26 +21,26 @@ namespace WikiHotWheelsWebScraper.Services
             HtmlParser parser = new HtmlParser();
 
             // IHtmlDocument is an interface that represents an HTML document with a DOM tree
-            IHtmlDocument document = parser.ParseDocument(response);
+            IHtmlDocument document = await parser.ParseDocumentAsync(response);
             return document;
         }
 
         private async Task<IHtmlDocument> ScrapeYearCollection(int year)
         {
-            HttpResponseMessage request = await _httpClient.GetAsync($"https://hotwheels.fandom.com/wiki/List_of_{year}_Hot_Wheels").ConfigureAwait(continueOnCapturedContext: false);
+            HttpResponseMessage request = await _httpClient.GetAsync($"https://hotwheels.fandom.com/wiki/List_of_{year}_Hot_Wheels");
 
             Stream response = await request.Content.ReadAsStreamAsync();
 
             HtmlParser parser = new HtmlParser();
 
-            IHtmlDocument yearPage = parser.ParseDocument(response);
+            IHtmlDocument yearPage = await parser.ParseDocumentAsync(response);
 
             return yearPage;
         }
 
-        public List<int> GetAllAvailableYears()
+        public async Task<List<int>> GetAllAvailableYears()
         {
-            IHtmlDocument doc = _mainPage;
+            IHtmlDocument doc = await ScrapeMainPage();
 
             var divWithYears = doc.QuerySelector(".wikitable.mw-collapisble.mw-collapsed tbody tr:last-child p");
             List<string> listOfString = new List<string>(divWithYears.TextContent.Split(" "));

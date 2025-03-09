@@ -5,7 +5,6 @@ namespace WikiHotWheelsWebScraper.Services
     public interface IScrapeHotWheelsWiki
     {
         Task<List<HotWheelsModel>> DefaultDataBasePopulation(int year);
-        List<int> GetAllAvailableYears();
-        Task InitializeAsync();
+        Task<List<int>> GetAllAvailableYears();
     }
 }
